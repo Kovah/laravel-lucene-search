@@ -6,9 +6,9 @@ use Nqxcode\LuceneSearch\Support\Collection;
 use ZendSearch\Lucene\Search\QueryHit;
 
 /**
- * TODO add unit tests
  * Class Config
- * @package Nqxcode\LuceneSearch
+ * TODO add unit tests
+ * @package Nqxcode\LuceneSearch\Model
  */
 class Config
 {
@@ -158,7 +158,7 @@ class Config
             $primaryKey = $model->getKeyName();
 
             if (!method_exists($model, 'searchableIds')) { // If not exists get full id list
-                $searchableIds = $model->newQuery()->lists($primaryKey);
+                $searchableIds = $model->newQuery()->pluck($primaryKey);
             } else {
                 $searchableIds = $model->{'searchableIds'}();
             }

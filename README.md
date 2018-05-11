@@ -1,4 +1,4 @@
-Laravel 5.2 Lucene search
+Laravel 5.4 Lucene search
 ==============
 
 [![Latest Stable Version](https://poser.pugx.org/nqxcode/laravel-lucene-search/v/stable.png)](https://packagist.org/packages/nqxcode/laravel-lucene-search)
@@ -7,7 +7,7 @@ Laravel 5.2 Lucene search
 [![Build Status](https://travis-ci.org/nqxcode/laravel-lucene-search.svg?branch=master)](https://travis-ci.org/nqxcode/laravel-lucene-search)
 [![Coverage Status](https://img.shields.io/coveralls/nqxcode/laravel-lucene-search/master.svg?style=flat)](https://coveralls.io/r/nqxcode/laravel-lucene-search?branch=master)
 
-Laravel 5.2 package for full-text search over Eloquent models based on ZendSearch Lucene.
+Laravel 5.4 package for full-text search over Eloquent models based on ZendSearch Lucene.
 
 ## Installation
 
@@ -16,7 +16,7 @@ Require this package in your composer.json and run composer update:
 ```json
 {
 	"require": {
-        "nqxcode/laravel-lucene-search": "2.2.*"
+        "nqxcode/laravel-lucene-search": "2.4.*"
 	}
 }
 ```
@@ -43,7 +43,7 @@ Publish the config file into your project by running:
 ```bash
 php artisan vendor:publish --provider="Nqxcode\LuceneSearch\ServiceProvider"
 ```
-###Basic
+### Basic
 In published config file add descriptions for models which need to be indexed, for example:
 
 ```php
@@ -63,12 +63,20 @@ In published config file add descriptions for models which need to be indexed, f
 		]
 	],
 	
+	namespace\ModelWithCustomPrimaryKey::class => [
+		// You can also define your primary key (if you use something else than "id")
+		'primary_key' => 'my_custom_field_name',
+		'fields' => [
+			'username', 'short_description', // fields for indexing
+		]
+	],
+	
 	// ...
 	
 ],
 
 ```
-###Indexing of dynamic fields
+### Indexing of dynamic fields
 You can also index values of **optional fields** (dynamic fields). For enable indexing for optional fields:
 
 - In config for each necessary model add following option:
@@ -113,7 +121,7 @@ In model add following accessor:
 ### Score Boosting
 See details on [Apache Lucene - Scoring](https://lucene.apache.org/core/3_5_0/scoring.html#Score%20Boosting).
 
-####Model level boosting
+#### Model level boosting
 This is **Document level boosting** in terminology of Apache Lucene. By default all models have **boost** value equal to **1**. For change of this behavior customize boost for necessary models as in the following examples.
 
 - In config for each necessary model add following option:
@@ -161,7 +169,7 @@ In model add following accessor:
         }
 ```
 
-####Model's field level boosting
+#### Model's field level boosting
 This is **Document's Field level boosting** in terminology of Apache Lucene.
 By default **boost** is set in **1** for each field. For change of this behavior set boost for necessary fields as in the following examples.
 
@@ -187,7 +195,7 @@ Or/and in model accessor:
         }
 ```
 
-###Stemming and stopwords
+### Stemming and stopwords
 By default the following filters are used in search:
 - Stemming filter for **english/russian** words (for reducing words to their root form),
 - Stopword filters for **english/russian** words (for exclude some words from search index).
@@ -239,7 +247,7 @@ class Dummy extends Model implements SearchableInterface
          */
         public static function searchableIds()
         {
-            return self::wherePublish(true)->lists('id');
+            return self::wherePublish(true)->pluck('id');
         }
 
         // ...
@@ -265,6 +273,19 @@ For register of necessary events (save/update/delete) `use Nqxcode\LuceneSearch\
 
 ```
 
+### Perform operations without indexing
+
+If you want to avoid triggering the indexing, wrap necessary operations in the ``withoutSyncingToSearch()`` method on your model:
+
+```php
+Product::withoutSyncingToSearch(function () {
+    // mass update position for product, e.g.
+    foreach (Product::all() as $i => $product) {
+        $product->update(['position' => $i)]);
+    }    
+});
+```
+
 ### Query building
 Build query in several ways:
 
@@ -280,6 +301,8 @@ $query = Search::where('name', 'clock'); // search by 'name' field.
 // or
 $query = Search::query('clock')              // search by all fields with
 	->where('short_description', 'analog'); // filter by 'short_description' field. 
+// or
+$query = Product::search('clock'); // search only in `Product` model by all fields in case when `Product` use `SearchableTrait`.
 ```
 ##### Advanced queries
 

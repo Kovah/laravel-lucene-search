@@ -3,7 +3,7 @@
 use App;
 
 /**
- * Class Search
+ * Trait SearchTrait
  * @package Nqxcode\LuceneSearch\Model
  */
 trait SearchTrait
@@ -13,16 +13,25 @@ trait SearchTrait
      */
     public static function bootSearchTrait()
     {
-        self::saved(
-            function ($model) {
-                App::offsetGet('search')->update($model);
-            }
-        );
+        self::observe(new SearchObserver);
+    }
 
-        self::deleting(
-            function ($model) {
-                App::offsetGet('search')->delete($model);
-            }
-        );
+    public static function withoutSyncingToSearch(\Closure $closure)
+    {
+        SearchObserver::setEnabled(false);
+        $result = $closure();
+        SearchObserver::setEnabled(true);
+
+        return $result;
+    }
+
+    public static function search($value, $field = '*', array $options = [])
+    {
+        $queryBuilder = App::make('Nqxcode\LuceneSearch\Query\Builder');
+
+        $queryBuilder->query($value, $field, $options);
+        $queryBuilder->where('class_uid', class_uid(get_called_class()));
+
+        return $queryBuilder;
     }
 }
