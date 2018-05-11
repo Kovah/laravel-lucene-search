@@ -10,7 +10,7 @@ use Nqxcode\LuceneSearch\Model\SearchTrait;
  * @property string $name
  * @property string $description
  * @property boolean $publish
- * @method Builder wherePublish(boolean $publish)
+ * @method static Builder wherePublish(boolean $publish)
  * @package tests\models
  */
 class Product extends Model implements SearchableInterface
@@ -24,7 +24,7 @@ class Product extends Model implements SearchableInterface
     {
         static $ids;
         if (is_null($ids)) {
-            $ids = self::wherePublish(true)->lists('id');
+            $ids = self::wherePublish(true)->pluck('id');
         }
 
         return $ids;

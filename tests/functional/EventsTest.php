@@ -2,6 +2,7 @@
 
 use tests\models\Product;
 use Search;
+use tests\models\Tool;
 
 /**
  * Class EventsTest
@@ -45,5 +46,39 @@ class EventsTest extends BaseTestCase
         $p->delete();
 
         $this->assertEquals(0, Search::query('observer')->count());
+    }
+
+    public function testWithoutSyncingToSearch()
+    {
+        $this->assertEquals(0, Search::query('observer')->count());
+
+        $result = Product::withoutSyncingToSearch(function () {
+            $p = Product::first();
+            $p->name = 'observer';
+            $p->save();
+
+            return 'result of closure';
+        });
+
+        $this->assertEquals(0, Search::query('observer')->count());
+        $this->assertEquals('result of closure', $result);
+    }
+
+    public function testSearch()
+    {
+        $this->assertEquals(0, Search::query('observer')->count());
+
+        $p = new Product;
+        $p->name = 'observer';
+        $p->save();
+
+        $p = new Tool();
+        $p->name = 'observer';
+        $p->save();
+
+        $this->assertEquals(2, Search::query('observer')->count());
+
+        $this->assertEquals(1, Product::search('observer')->count());
+        $this->assertEquals(1, Tool::search('observer')->count());
     }
 }
