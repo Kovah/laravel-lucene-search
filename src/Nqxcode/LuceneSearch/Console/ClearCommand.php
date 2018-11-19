@@ -2,6 +2,7 @@
 
 use Illuminate\Console\Command;
 use Config;
+use Illuminate\Filesystem\Filesystem;
 use Symfony\Component\Console\Output\NullOutput;
 
 /**
@@ -20,7 +21,8 @@ class ClearCommand extends Command
         }
 
         if (\File::isDirectory($indexPath = Config::get('laravel-lucene-search.index.path'))) {
-            \File::deleteDirectory($indexPath);
+            $fs = new Filesystem();
+            $fs->cleanDirectory($indexPath);
             $this->info('Search index is cleared.');
         } else {
             $this->comment('There is nothing to clear..');
